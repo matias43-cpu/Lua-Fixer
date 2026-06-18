@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: lua
+    description: Lua code validation and fixing
 paths:
   /healthz:
     get:
@@ -24,6 +26,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /lua/validate:
+    post:
+      operationId: validateLua
+      tags: [lua]
+      summary: Validate and auto-fix Lua code
+      description: Checks Lua code for structural errors and returns a fixed version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LuaInput"
+      responses:
+        "200":
+          description: Validation result with fixed code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LuaValidationResult"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +54,33 @@ components:
           type: string
       required:
         - status
-
+    LuaInput:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: The Lua code to validate and fix
+    LuaValidationResult:
+      type: object
+      required:
+        - valid
+        - originalCode
+        - fixedCode
+        - errors
+      properties:
+        valid:
+          type: boolean
+          description: Whether the code is valid (no errors found)
+        originalCode:
+          type: string
+          description: The original submitted code
+        fixedCode:
+          type: string
+          description: The corrected version of the code
+        errors:
+          type: array
+          items:
+            type: string
+          description: List of detected errors

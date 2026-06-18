@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './healthStatus';
-export * from './luaInput';
-export * from './luaValidationResult';
+export interface LuaInput {
+  /** The Lua code to validate and fix */
+  code: string;
+}

@@ -5,14 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface LuaInput {
-  /** The Lua code to validate and fix */
-  code: string;
-}
 
 export interface LuaValidationResult {
   /** Whether the code is valid (no errors found) */
@@ -24,4 +16,3 @@ export interface LuaValidationResult {
   /** List of detected errors */
   errors: string[];
 }
-
