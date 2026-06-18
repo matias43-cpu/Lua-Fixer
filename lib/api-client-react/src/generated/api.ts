@@ -20,9 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  HealthStatus,
-  LuaInput,
-  LuaValidationResult
+  CodeInput,
+  CodeValidationResult,
+  HealthStatus
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -115,38 +115,38 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
-export const getValidateLuaUrl = () => {
+export const getValidateCodeUrl = () => {
 
 
 
 
-  return `/api/lua/validate`
+  return `/api/code/validate`
 }
 
 /**
- * Checks Lua code for structural errors and returns a fixed version
- * @summary Validate and auto-fix Lua code
+ * Checks Lua or Python code for structural errors and returns a fixed version
+ * @summary Validate and auto-fix code
  */
-export const validateLua = async (luaInput: LuaInput, options?: RequestInit): Promise<LuaValidationResult> => {
+export const validateCode = async (codeInput: CodeInput, options?: RequestInit): Promise<CodeValidationResult> => {
 
-  return customFetch<LuaValidationResult>(getValidateLuaUrl(),
+  return customFetch<CodeValidationResult>(getValidateCodeUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      luaInput,)
+      codeInput,)
   }
 );}
 
 
 
 
-export const getValidateLuaMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateLua>>, TError,{data: BodyType<LuaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof validateLua>>, TError,{data: BodyType<LuaInput>}, TContext> => {
+export const getValidateCodeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateCode>>, TError,{data: BodyType<CodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof validateCode>>, TError,{data: BodyType<CodeInput>}, TContext> => {
 
-const mutationKey = ['validateLua'];
+const mutationKey = ['validateCode'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -156,10 +156,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof validateLua>>, {data: BodyType<LuaInput>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof validateCode>>, {data: BodyType<CodeInput>}> = (props) => {
           const {data} = props ?? {};
 
-          return  validateLua(data,requestOptions)
+          return  validateCode(data,requestOptions)
         }
 
 
@@ -169,21 +169,21 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type ValidateLuaMutationResult = NonNullable<Awaited<ReturnType<typeof validateLua>>>
-    export type ValidateLuaMutationBody = BodyType<LuaInput>
-    export type ValidateLuaMutationError = ErrorType<unknown>
+    export type ValidateCodeMutationResult = NonNullable<Awaited<ReturnType<typeof validateCode>>>
+    export type ValidateCodeMutationBody = BodyType<CodeInput>
+    export type ValidateCodeMutationError = ErrorType<unknown>
 
     /**
- * @summary Validate and auto-fix Lua code
+ * @summary Validate and auto-fix code
  */
-export const useValidateLua = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateLua>>, TError,{data: BodyType<LuaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useValidateCode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateCode>>, TError,{data: BodyType<CodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
-        Awaited<ReturnType<typeof validateLua>>,
+        Awaited<ReturnType<typeof validateCode>>,
         TError,
-        {data: BodyType<LuaInput>},
+        {data: BodyType<CodeInput>},
         TContext
       > => {
-      return useMutation(getValidateLuaMutationOptions(options));
+      return useMutation(getValidateCodeMutationOptions(options));
     }
 

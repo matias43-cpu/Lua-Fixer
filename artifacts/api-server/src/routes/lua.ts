@@ -1,44 +1,33 @@
 import { Router } from "express";
-import { ValidateLuaBody } from "@workspace/api-zod";
+import { ValidateCodeBody } from "@workspace/api-zod";
 
 const router = Router();
 
-function validateAndFixLua(code: string): {
-  valid: boolean;
-  errors: string[];
-  fixedCode: string;
-} {
+function validateLua(code: string): { errors: string[]; fixedCode: string } {
   const errors: string[] = [];
   let fixedCode = code;
 
-  // Check for unclosed functions (function ... without end)
-  const functionMatches = (code.match(/\bfunction\b/g) || []).length;
-  const endMatches = (code.match(/\bend\b/g) || []).length;
-
-  if (functionMatches > 0 && endMatches < functionMatches) {
-    const missing = functionMatches - endMatches;
-    errors.push(
-      `Missing ${missing} 'end' keyword(s) to close function block(s).`
-    );
+  const functionCount = (code.match(/\bfunction\b/g) || []).length;
+  const endCount = (code.match(/\bend\b/g) || []).length;
+  if (functionCount > 0 && endCount < functionCount) {
+    const missing = functionCount - endCount;
+    errors.push(`Missing ${missing} 'end' keyword(s) to close function block(s).`);
     fixedCode = fixedCode.trimEnd() + "\nend".repeat(missing);
   }
 
-  // Check for if without then
-  const ifWithoutThen = /\bif\b(?:[^-]|--[^\n]*\n)*?(?!\bthen\b)/;
-  const ifMatches = (code.match(/\bif\b/g) || []).length;
-  const thenMatches = (code.match(/\bthen\b/g) || []).length;
-  if (ifMatches > thenMatches) {
+  const ifCount = (code.match(/\bif\b/g) || []).length;
+  const thenCount = (code.match(/\bthen\b/g) || []).length;
+  if (ifCount > thenCount) {
     errors.push(`Found 'if' without 'then' — each 'if' condition requires a 'then'.`);
-    fixedCode = fixedCode.replace(/\bif\b(.*?)(?!\bthen\b)(\n|$)/g, (match, cond, ending) => {
+    fixedCode = fixedCode.replace(/\bif\b(.*?)(\n|$)/g, (match, cond, ending) => {
       if (cond.includes("then")) return match;
       return `if${cond} then${ending}`;
     });
   }
 
-  // Check for while without do
-  const whileMatches = (code.match(/\bwhile\b/g) || []).length;
-  const doMatches = (code.match(/\bdo\b/g) || []).length;
-  if (whileMatches > doMatches) {
+  const whileCount = (code.match(/\bwhile\b/g) || []).length;
+  const doCount = (code.match(/\bdo\b/g) || []).length;
+  if (whileCount > 0 && doCount < whileCount) {
     errors.push(`Found 'while' without 'do' — each 'while' loop requires a 'do'.`);
     fixedCode = fixedCode.replace(/\bwhile\b(.*?)(\n|$)/g, (match, cond, ending) => {
       if (cond.includes("do")) return match;
@@ -46,13 +35,6 @@ function validateAndFixLua(code: string): {
     });
   }
 
-  // Check for for without do
-  const forMatches = (code.match(/\bfor\b/g) || []).length;
-  if (forMatches > doMatches - whileMatches) {
-    errors.push(`Found 'for' without 'do' — each 'for' loop requires a 'do'.`);
-  }
-
-  // Check for unclosed string literals (basic check: odd number of quotes)
   const singleQuoteCount = (code.match(/(?<!\\)'/g) || []).length;
   const doubleQuoteCount = (code.match(/(?<!\\)"/g) || []).length;
   if (singleQuoteCount % 2 !== 0) {
@@ -62,37 +44,72 @@ function validateAndFixLua(code: string): {
     errors.push(`Unclosed string literal — odd number of double quotes (") detected.`);
   }
 
-  // Check for use of = instead of == in conditions
   if (/\bif\b[^=]*[^=!<>]=[^=][^=]*\bthen\b/.test(code)) {
     errors.push(`Possible assignment (=) used inside 'if' condition — did you mean equality (==)?`);
   }
 
-  // Check for undefined print-like calls that are common Lua mistakes
-  // (this is a heuristic, not a real parser)
-  if (/\bprint\s*\(/.test(code) === false && /\bio\.write\s*\(/.test(code) === false && code.trim().length > 0) {
-    // not an error, just a structural check — skip
-  }
-
-  const valid = errors.length === 0;
-  if (valid) {
-    fixedCode = code; // no changes needed
-  }
-
-  return { valid, errors, fixedCode };
+  return { errors, fixedCode: errors.length === 0 ? code : fixedCode };
 }
 
-router.post("/lua/validate", (req, res) => {
-  const parseResult = ValidateLuaBody.safeParse(req.body);
+function validatePython(code: string): { errors: string[]; fixedCode: string } {
+  const errors: string[] = [];
+  let fixedCode = code;
+  const lines = code.split("\n");
+  const fixedLines = [...lines];
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trimEnd();
+
+    // def without colon
+    if (/^\s*def\s+\w+\s*\(.*\)\s*$/.test(trimmed)) {
+      errors.push(`Line ${i + 1}: Function definition 'def' is missing a colon (:) at the end.`);
+      fixedLines[i] = trimmed + ":";
+    }
+
+    // if/elif/else/for/while/with/class/try/except/finally without colon
+    if (
+      /^\s*(if|elif|else|for|while|with|class|try|except|finally)\b/.test(trimmed) &&
+      !/:\s*(#.*)?$/.test(trimmed)
+    ) {
+      const keyword = trimmed.match(/^\s*(\w+)/)?.[1] ?? "statement";
+      errors.push(`Line ${i + 1}: '${keyword}' block is missing a colon (:) at the end.`);
+      fixedLines[i] = trimmed + ":";
+    }
+
+    // print without parentheses (Python 2 style)
+    if (/^\s*print\s+[^(]/.test(trimmed)) {
+      errors.push(`Line ${i + 1}: 'print' looks like Python 2 syntax — use print() with parentheses.`);
+      fixedLines[i] = trimmed.replace(/^(\s*)print\s+(.*)$/, (_, indent, args) => `${indent}print(${args})`);
+    }
+
+    // == True/False/None (should use 'is' for identity checks)
+    if (/==\s*(True|False|None)\b/.test(trimmed)) {
+      const val = trimmed.match(/==\s*(True|False|None)/)?.[1];
+      errors.push(`Line ${i + 1}: Comparing with ${val} using '==' — prefer 'is ${val}' for identity checks.`);
+    }
+  });
+
+  if (errors.length > 0) {
+    fixedCode = fixedLines.join("\n");
+  }
+
+  return { errors, fixedCode: errors.length === 0 ? code : fixedCode };
+}
+
+router.post("/code/validate", (req, res) => {
+  const parseResult = ValidateCodeBody.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: "Invalid request body", details: parseResult.error.flatten() });
     return;
   }
 
-  const { code } = parseResult.data;
-  const { valid, errors, fixedCode } = validateAndFixLua(code);
+  const { code, language } = parseResult.data;
+  const { errors, fixedCode } =
+    language === "python" ? validatePython(code) : validateLua(code);
 
   res.json({
-    valid,
+    valid: errors.length === 0,
+    language,
     originalCode: code,
     fixedCode,
     errors,

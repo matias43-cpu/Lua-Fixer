@@ -9,14 +9,40 @@ export interface HealthStatus {
   status: string;
 }
 
-export interface LuaInput {
-  /** The Lua code to validate and fix */
+/**
+ * The programming language of the code
+ */
+export type CodeInputLanguage = typeof CodeInputLanguage[keyof typeof CodeInputLanguage];
+
+
+export const CodeInputLanguage = {
+  lua: 'lua',
+  python: 'python',
+} as const;
+
+export interface CodeInput {
+  /** The code to validate and fix */
   code: string;
+  /** The programming language of the code */
+  language: CodeInputLanguage;
 }
 
-export interface LuaValidationResult {
+/**
+ * The language that was validated
+ */
+export type CodeValidationResultLanguage = typeof CodeValidationResultLanguage[keyof typeof CodeValidationResultLanguage];
+
+
+export const CodeValidationResultLanguage = {
+  lua: 'lua',
+  python: 'python',
+} as const;
+
+export interface CodeValidationResult {
   /** Whether the code is valid (no errors found) */
   valid: boolean;
+  /** The language that was validated */
+  language: CodeValidationResultLanguage;
   /** The original submitted code */
   originalCode: string;
   /** The corrected version of the code */

@@ -10,8 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
-  - name: lua
-    description: Lua code validation and fixing
+  - name: code
+    description: Code validation and fixing
 paths:
   /healthz:
     get:
@@ -26,25 +26,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
-  /lua/validate:
+  /code/validate:
     post:
-      operationId: validateLua
-      tags: [lua]
-      summary: Validate and auto-fix Lua code
-      description: Checks Lua code for structural errors and returns a fixed version
+      operationId: validateCode
+      tags: [code]
+      summary: Validate and auto-fix code
+      description: Checks Lua or Python code for structural errors and returns a fixed version
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LuaInput"
+              $ref: "#/components/schemas/CodeInput"
       responses:
         "200":
           description: Validation result with fixed code
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LuaValidationResult"
+                $ref: "#/components/schemas/CodeValidationResult"
 components:
   schemas:
     HealthStatus:
@@ -54,18 +54,24 @@ components:
           type: string
       required:
         - status
-    LuaInput:
+    CodeInput:
       type: object
       required:
         - code
+        - language
       properties:
         code:
           type: string
-          description: The Lua code to validate and fix
-    LuaValidationResult:
+          description: The code to validate and fix
+        language:
+          type: string
+          enum: [lua, python]
+          description: The programming language of the code
+    CodeValidationResult:
       type: object
       required:
         - valid
+        - language
         - originalCode
         - fixedCode
         - errors
@@ -73,6 +79,10 @@ components:
         valid:
           type: boolean
           description: Whether the code is valid (no errors found)
+        language:
+          type: string
+          enum: [lua, python]
+          description: The language that was validated
         originalCode:
           type: string
           description: The original submitted code

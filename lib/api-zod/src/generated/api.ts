@@ -18,15 +18,17 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * Checks Lua code for structural errors and returns a fixed version
- * @summary Validate and auto-fix Lua code
+ * Checks Lua or Python code for structural errors and returns a fixed version
+ * @summary Validate and auto-fix code
  */
-export const ValidateLuaBody = zod.object({
-  "code": zod.string().describe('The Lua code to validate and fix')
+export const ValidateCodeBody = zod.object({
+  "code": zod.string().describe('The code to validate and fix'),
+  "language": zod.enum(['lua', 'python']).describe('The programming language of the code')
 })
 
-export const ValidateLuaResponse = zod.object({
+export const ValidateCodeResponse = zod.object({
   "valid": zod.boolean().describe('Whether the code is valid (no errors found)'),
+  "language": zod.enum(['lua', 'python']).describe('The language that was validated'),
   "originalCode": zod.string().describe('The original submitted code'),
   "fixedCode": zod.string().describe('The corrected version of the code'),
   "errors": zod.array(zod.string()).describe('List of detected errors')

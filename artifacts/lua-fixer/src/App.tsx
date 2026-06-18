@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useValidateLua } from "@workspace/api-client-react";
+import { useValidateCode } from "@workspace/api-client-react";
 import { Terminal, ShieldAlert, ShieldCheck, ChevronRight, Activity, Cpu } from "lucide-react";
 
 // Use a single instance of QueryClient
@@ -14,11 +14,17 @@ const queryClient = new QueryClient({
 
 function MainApp() {
   const [code, setCode] = useState("");
-  const validateMutation = useValidateLua();
+  const [language, setLanguage] = useState<"lua" | "python">("lua");
+  const validateMutation = useValidateCode();
 
   const handleValidate = () => {
     if (!code.trim()) return;
-    validateMutation.mutate({ data: { code } });
+    validateMutation.mutate({ data: { code, language } });
+  };
+
+  const handleLanguageChange = (lang: "lua" | "python") => {
+    setLanguage(lang);
+    validateMutation.reset();
   };
 
   const isScanning = validateMutation.isPending;
@@ -31,7 +37,7 @@ function MainApp() {
         <div className="flex items-center gap-3">
           <Terminal className="w-8 h-8 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold text-primary tracking-wider glitch-glow uppercase">LUA_STATION // V1.0</h1>
+            <h1 className="text-2xl font-bold text-primary tracking-wider glitch-glow uppercase">CODE_STATION // V2.0</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-2">
               <Activity className="w-3 h-3 text-primary/50" />
               Automated Diagnostics & Repair
@@ -51,14 +57,38 @@ function MainApp() {
         <section className="terminal-panel flex flex-col">
           <div className="bg-secondary/50 border-b border-border px-4 py-2 flex items-center justify-between">
             <span className="text-sm font-bold text-primary flex items-center gap-2">
-              <ChevronRight className="w-4 h-4" /> input.lua
+              <ChevronRight className="w-4 h-4" /> input.{language === "lua" ? "lua" : "py"}
             </span>
             <span className="text-xs text-muted-foreground uppercase">RAW_SOURCE</span>
           </div>
+          
+          <div className="flex px-4 pt-4 pb-2 gap-2 border-b border-border/50">
+            <button
+              onClick={() => handleLanguageChange("lua")}
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border ${
+                language === "lua" 
+                  ? "bg-primary text-primary-foreground border-primary" 
+                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+              }`}
+            >
+              LUA
+            </button>
+            <button
+              onClick={() => handleLanguageChange("python")}
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border ${
+                language === "python" 
+                  ? "bg-primary text-primary-foreground border-primary" 
+                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+              }`}
+            >
+              PYTHON
+            </button>
+          </div>
+
           <div className="relative p-4 flex-grow">
             <textarea
               className="w-full min-h-[300px] bg-transparent text-foreground placeholder:text-muted-foreground/50 resize-y outline-none font-mono text-sm scrollbar-custom"
-              placeholder="-- Paste your unverified Lua code here..."
+              placeholder={language === "lua" ? "-- Paste your unverified Lua code here..." : "# Paste your unverified Python code here..."}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               spellCheck={false}
