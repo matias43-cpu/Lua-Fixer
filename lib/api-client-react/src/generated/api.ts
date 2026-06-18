@@ -124,7 +124,7 @@ export const getValidateCodeUrl = () => {
 }
 
 /**
- * Checks Lua or Python code for structural errors and returns a fixed version
+ * Checks code for structural errors and returns a fixed version
  * @summary Validate and auto-fix code
  */
 export const validateCode = async (codeInput: CodeInput, options?: RequestInit): Promise<CodeValidationResult> => {

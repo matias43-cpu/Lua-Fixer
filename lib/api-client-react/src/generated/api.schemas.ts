@@ -18,6 +18,8 @@ export type CodeInputLanguage = typeof CodeInputLanguage[keyof typeof CodeInputL
 export const CodeInputLanguage = {
   lua: 'lua',
   python: 'python',
+  javascript: 'javascript',
+  cpp: 'cpp',
 } as const;
 
 export interface CodeInput {
@@ -36,6 +38,8 @@ export type CodeValidationResultLanguage = typeof CodeValidationResultLanguage[k
 export const CodeValidationResultLanguage = {
   lua: 'lua',
   python: 'python',
+  javascript: 'javascript',
+  cpp: 'cpp',
 } as const;
 
 export interface CodeValidationResult {

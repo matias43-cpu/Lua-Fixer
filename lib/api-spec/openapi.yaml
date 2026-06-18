@@ -31,7 +31,7 @@ paths:
       operationId: validateCode
       tags: [code]
       summary: Validate and auto-fix code
-      description: Checks Lua or Python code for structural errors and returns a fixed version
+      description: Checks code for structural errors and returns a fixed version
       requestBody:
         required: true
         content:
@@ -65,7 +65,7 @@ components:
           description: The code to validate and fix
         language:
           type: string
-          enum: [lua, python]
+          enum: [lua, python, javascript, cpp]
           description: The programming language of the code
     CodeValidationResult:
       type: object
@@ -81,7 +81,7 @@ components:
           description: Whether the code is valid (no errors found)
         language:
           type: string
-          enum: [lua, python]
+          enum: [lua, python, javascript, cpp]
           description: The language that was validated
         originalCode:
           type: string

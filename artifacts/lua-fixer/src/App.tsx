@@ -12,9 +12,11 @@ const queryClient = new QueryClient({
   },
 });
 
+type Language = "lua" | "python" | "javascript" | "cpp";
+
 function MainApp() {
   const [code, setCode] = useState("");
-  const [language, setLanguage] = useState<"lua" | "python">("lua");
+  const [language, setLanguage] = useState<Language>("lua");
   const validateMutation = useValidateCode();
 
   const handleValidate = () => {
@@ -22,13 +24,29 @@ function MainApp() {
     validateMutation.mutate({ data: { code, language } });
   };
 
-  const handleLanguageChange = (lang: "lua" | "python") => {
+  const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
     validateMutation.reset();
   };
 
   const isScanning = validateMutation.isPending;
   const result = validateMutation.data;
+
+  const getExtension = (lang: Language) => {
+    if (lang === "lua") return "lua";
+    if (lang === "python") return "py";
+    if (lang === "javascript") return "js";
+    if (lang === "cpp") return "cpp";
+    return "";
+  };
+
+  const getPlaceholder = (lang: Language) => {
+    if (lang === "lua") return "-- Paste your unverified Lua code here...";
+    if (lang === "python") return "# Paste your unverified Python code here...";
+    if (lang === "javascript") return "// Paste your unverified JavaScript code here...";
+    if (lang === "cpp") return "// Paste your unverified C++ code here...";
+    return "";
+  };
 
   return (
     <div className="min-h-[100dvh] w-full flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8 scanline-container">
@@ -40,7 +58,7 @@ function MainApp() {
             <h1 className="text-2xl font-bold text-primary tracking-wider glitch-glow uppercase">CODE_STATION // V2.0</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-2">
               <Activity className="w-3 h-3 text-primary/50" />
-              Automated Diagnostics & Repair
+              Multi-Language Diagnostics & Repair
             </p>
           </div>
         </div>
@@ -57,15 +75,15 @@ function MainApp() {
         <section className="terminal-panel flex flex-col">
           <div className="bg-secondary/50 border-b border-border px-4 py-2 flex items-center justify-between">
             <span className="text-sm font-bold text-primary flex items-center gap-2">
-              <ChevronRight className="w-4 h-4" /> input.{language === "lua" ? "lua" : "py"}
+              <ChevronRight className="w-4 h-4" /> input.{getExtension(language)}
             </span>
             <span className="text-xs text-muted-foreground uppercase">RAW_SOURCE</span>
           </div>
           
-          <div className="flex px-4 pt-4 pb-2 gap-2 border-b border-border/50">
+          <div className="flex px-4 pt-4 pb-2 gap-2 border-b border-border/50 overflow-x-auto">
             <button
               onClick={() => handleLanguageChange("lua")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border ${
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
                 language === "lua" 
                   ? "bg-primary text-primary-foreground border-primary" 
                   : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
@@ -75,7 +93,7 @@ function MainApp() {
             </button>
             <button
               onClick={() => handleLanguageChange("python")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border ${
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
                 language === "python" 
                   ? "bg-primary text-primary-foreground border-primary" 
                   : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
@@ -83,12 +101,32 @@ function MainApp() {
             >
               PYTHON
             </button>
+            <button
+              onClick={() => handleLanguageChange("javascript")}
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
+                language === "javascript" 
+                  ? "bg-primary text-primary-foreground border-primary" 
+                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+              }`}
+            >
+              JS
+            </button>
+            <button
+              onClick={() => handleLanguageChange("cpp")}
+              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
+                language === "cpp" 
+                  ? "bg-primary text-primary-foreground border-primary" 
+                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+              }`}
+            >
+              C++
+            </button>
           </div>
 
           <div className="relative p-4 flex-grow">
             <textarea
               className="w-full min-h-[300px] bg-transparent text-foreground placeholder:text-muted-foreground/50 resize-y outline-none font-mono text-sm scrollbar-custom"
-              placeholder={language === "lua" ? "-- Paste your unverified Lua code here..." : "# Paste your unverified Python code here..."}
+              placeholder={getPlaceholder(language)}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               spellCheck={false}

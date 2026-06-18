@@ -15,4 +15,6 @@ export type CodeValidationResultLanguage = typeof CodeValidationResultLanguage[k
 export const CodeValidationResultLanguage = {
   lua: 'lua',
   python: 'python',
+  javascript: 'javascript',
+  cpp: 'cpp',
 } as const;
