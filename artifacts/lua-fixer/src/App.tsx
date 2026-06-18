@@ -2,6 +2,7 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useValidateCode } from "@workspace/api-client-react";
 import { Terminal, ShieldAlert, ShieldCheck, ChevronRight, Activity, Cpu } from "lucide-react";
+import { HighlightedCode } from "@/components/HighlightedCode";
 
 // Use a single instance of QueryClient
 const queryClient = new QueryClient({
@@ -198,9 +199,7 @@ function MainApp() {
                     <span className="text-xs text-[#00ff66] uppercase">AUTO_CORRECTED</span>
                   </div>
                   <div className="relative p-4 flex-grow bg-[#00ff66]/5 max-h-[400px] overflow-auto scrollbar-custom">
-                    <pre className="font-mono text-sm text-[#e0e0e0] whitespace-pre-wrap break-all">
-                      <code>{result.fixedCode}</code>
-                    </pre>
+                    <HighlightedCode code={result.fixedCode} language={result.language as "lua" | "python" | "javascript" | "cpp"} />
                   </div>
                   <div className="border-t border-[#00ff66]/30 p-2 bg-[#00ff66]/10 flex justify-end">
                     <button
