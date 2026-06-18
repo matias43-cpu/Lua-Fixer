@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Switch, Route, Link } from "wouter";
 import { useValidateCode } from "@workspace/api-client-react";
-import { Terminal, ShieldAlert, ShieldCheck, ChevronRight, Activity, Cpu } from "lucide-react";
+import { Terminal, ShieldAlert, ShieldCheck, ChevronRight, Activity, Cpu, BookOpen } from "lucide-react";
 import { HighlightedCode } from "@/components/HighlightedCode";
+import Languages from "@/pages/Languages";
 
 // Use a single instance of QueryClient
 const queryClient = new QueryClient({
@@ -63,9 +65,18 @@ function MainApp() {
             </p>
           </div>
         </div>
-        <div className="hidden sm:block text-xs text-primary/50 uppercase tracking-widest text-right">
-          SYS_STATUS: <span className="text-primary glitch-glow">ONLINE</span><br/>
-          UPLINK: <span className="text-primary glitch-glow">SECURE</span>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/languages"
+            className="flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary border border-primary/30 hover:border-primary px-3 py-1.5 uppercase tracking-wider font-bold transition-all"
+            data-testid="link-languages"
+          >
+            <BookOpen className="w-3 h-3" /> Lang Library
+          </Link>
+          <div className="hidden sm:block text-xs text-primary/50 uppercase tracking-widest text-right">
+            SYS_STATUS: <span className="text-primary glitch-glow">ONLINE</span><br/>
+            UPLINK: <span className="text-primary glitch-glow">SECURE</span>
+          </div>
         </div>
       </header>
 
@@ -238,7 +249,10 @@ function MainApp() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MainApp />
+      <Switch>
+        <Route path="/languages" component={Languages} />
+        <Route component={MainApp} />
+      </Switch>
     </QueryClientProvider>
   );
 }
