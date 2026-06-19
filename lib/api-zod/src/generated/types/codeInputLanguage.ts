@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * The programming language of the code
- */
 export type CodeInputLanguage = typeof CodeInputLanguage[keyof typeof CodeInputLanguage];
 
 

@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './codeGenerateInput';
+export * from './codeGenerateInputLanguage';
+export * from './codeGenerateResult';
+export * from './codeGenerateResultLanguage';
 export * from './codeInput';
 export * from './codeInputLanguage';
 export * from './codeValidationResult';

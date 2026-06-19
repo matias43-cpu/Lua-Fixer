@@ -8,8 +8,6 @@
 import type { CodeInputLanguage } from './codeInputLanguage';
 
 export interface CodeInput {
-  /** The code to validate and fix */
   code: string;
-  /** The programming language of the code */
   language: CodeInputLanguage;
 }

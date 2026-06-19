@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type CodeValidationResultLanguage = typeof CodeValidationResultLanguage[keyof typeof CodeValidationResultLanguage];
+export type CodeGenerateResultLanguage = typeof CodeGenerateResultLanguage[keyof typeof CodeGenerateResultLanguage];
 
 
-export const CodeValidationResultLanguage = {
+export const CodeGenerateResultLanguage = {
   lua: 'lua',
   python: 'python',
   javascript: 'javascript',

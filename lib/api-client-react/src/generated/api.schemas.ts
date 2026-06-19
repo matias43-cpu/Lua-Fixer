@@ -9,9 +9,6 @@ export interface HealthStatus {
   status: string;
 }
 
-/**
- * The programming language of the code
- */
 export type CodeInputLanguage = typeof CodeInputLanguage[keyof typeof CodeInputLanguage];
 
 
@@ -23,15 +20,10 @@ export const CodeInputLanguage = {
 } as const;
 
 export interface CodeInput {
-  /** The code to validate and fix */
   code: string;
-  /** The programming language of the code */
   language: CodeInputLanguage;
 }
 
-/**
- * The language that was validated
- */
 export type CodeValidationResultLanguage = typeof CodeValidationResultLanguage[keyof typeof CodeValidationResultLanguage];
 
 
@@ -43,15 +35,42 @@ export const CodeValidationResultLanguage = {
 } as const;
 
 export interface CodeValidationResult {
-  /** Whether the code is valid (no errors found) */
   valid: boolean;
-  /** The language that was validated */
   language: CodeValidationResultLanguage;
-  /** The original submitted code */
   originalCode: string;
-  /** The corrected version of the code */
   fixedCode: string;
-  /** List of detected errors */
   errors: string[];
+}
+
+export type CodeGenerateInputLanguage = typeof CodeGenerateInputLanguage[keyof typeof CodeGenerateInputLanguage];
+
+
+export const CodeGenerateInputLanguage = {
+  lua: 'lua',
+  python: 'python',
+  javascript: 'javascript',
+  cpp: 'cpp',
+} as const;
+
+export interface CodeGenerateInput {
+  /** Natural language description of what the code should do */
+  prompt: string;
+  language: CodeGenerateInputLanguage;
+}
+
+export type CodeGenerateResultLanguage = typeof CodeGenerateResultLanguage[keyof typeof CodeGenerateResultLanguage];
+
+
+export const CodeGenerateResultLanguage = {
+  lua: 'lua',
+  python: 'python',
+  javascript: 'javascript',
+  cpp: 'cpp',
+} as const;
+
+export interface CodeGenerateResult {
+  language: CodeGenerateResultLanguage;
+  prompt: string;
+  generatedCode: string;
 }
 

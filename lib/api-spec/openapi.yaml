@@ -11,14 +11,13 @@ tags:
   - name: health
     description: Health operations
   - name: code
-    description: Code validation and fixing
+    description: Code validation, fixing, and generation
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -31,7 +30,6 @@ paths:
       operationId: validateCode
       tags: [code]
       summary: Validate and auto-fix code
-      description: Checks code for structural errors and returns a fixed version
       requestBody:
         required: true
         content:
@@ -45,52 +43,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CodeValidationResult"
+  /code/generate:
+    post:
+      operationId: generateCode
+      tags: [code]
+      summary: Generate code from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CodeGenerateInput"
+      responses:
+        "200":
+          description: Generated code snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeGenerateResult"
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
     CodeInput:
       type: object
-      required:
-        - code
-        - language
+      required: [code, language]
       properties:
         code:
           type: string
-          description: The code to validate and fix
         language:
           type: string
           enum: [lua, python, javascript, cpp]
-          description: The programming language of the code
     CodeValidationResult:
       type: object
-      required:
-        - valid
-        - language
-        - originalCode
-        - fixedCode
-        - errors
+      required: [valid, language, originalCode, fixedCode, errors]
       properties:
         valid:
           type: boolean
-          description: Whether the code is valid (no errors found)
         language:
           type: string
           enum: [lua, python, javascript, cpp]
-          description: The language that was validated
         originalCode:
           type: string
-          description: The original submitted code
         fixedCode:
           type: string
-          description: The corrected version of the code
         errors:
           type: array
           items:
             type: string
-          description: List of detected errors
+    CodeGenerateInput:
+      type: object
+      required: [prompt, language]
+      properties:
+        prompt:
+          type: string
+          description: Natural language description of what the code should do
+        language:
+          type: string
+          enum: [lua, python, javascript, cpp]
+    CodeGenerateResult:
+      type: object
+      required: [language, prompt, generatedCode]
+      properties:
+        language:
+          type: string
+          enum: [lua, python, javascript, cpp]
+        prompt:
+          type: string
+        generatedCode:
+          type: string

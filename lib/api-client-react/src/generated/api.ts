@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CodeGenerateInput,
+  CodeGenerateResult,
   CodeInput,
   CodeValidationResult,
   HealthStatus
@@ -46,7 +48,6 @@ export const getHealthCheckUrl = () => {
 }
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const healthCheck = async ( options?: RequestInit): Promise<HealthStatus> => {
@@ -124,7 +125,6 @@ export const getValidateCodeUrl = () => {
 }
 
 /**
- * Checks code for structural errors and returns a fixed version
  * @summary Validate and auto-fix code
  */
 export const validateCode = async (codeInput: CodeInput, options?: RequestInit): Promise<CodeValidationResult> => {
@@ -185,5 +185,76 @@ export const useValidateCode = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getValidateCodeMutationOptions(options));
+    }
+
+export const getGenerateCodeUrl = () => {
+
+
+
+
+  return `/api/code/generate`
+}
+
+/**
+ * @summary Generate code from a text prompt
+ */
+export const generateCode = async (codeGenerateInput: CodeGenerateInput, options?: RequestInit): Promise<CodeGenerateResult> => {
+
+  return customFetch<CodeGenerateResult>(getGenerateCodeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      codeGenerateInput,)
+  }
+);}
+
+
+
+
+export const getGenerateCodeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateCode>>, TError,{data: BodyType<CodeGenerateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateCode>>, TError,{data: BodyType<CodeGenerateInput>}, TContext> => {
+
+const mutationKey = ['generateCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateCode>>, {data: BodyType<CodeGenerateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateCode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateCodeMutationResult = NonNullable<Awaited<ReturnType<typeof generateCode>>>
+    export type GenerateCodeMutationBody = BodyType<CodeGenerateInput>
+    export type GenerateCodeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate code from a text prompt
+ */
+export const useGenerateCode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateCode>>, TError,{data: BodyType<CodeGenerateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateCode>>,
+        TError,
+        {data: BodyType<CodeGenerateInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateCodeMutationOptions(options));
     }
 

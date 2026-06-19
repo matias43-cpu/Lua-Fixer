@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Switch, Route, Link } from "wouter";
-import { useValidateCode } from "@workspace/api-client-react";
+import { useValidateCode, useGenerateCode } from "@workspace/api-client-react";
 import { Terminal, ShieldAlert, ShieldCheck, ChevronRight, Activity, Cpu, BookOpen } from "lucide-react";
 import { HighlightedCode } from "@/components/HighlightedCode";
 import Languages from "@/pages/Languages";
@@ -22,6 +22,10 @@ function MainApp() {
   const [language, setLanguage] = useState<Language>("lua");
   const validateMutation = useValidateCode();
 
+  const [prompt, setPrompt] = useState("");
+  const [genLanguage, setGenLanguage] = useState<Language>("lua");
+  const generateMutation = useGenerateCode();
+
   const handleValidate = () => {
     if (!code.trim()) return;
     validateMutation.mutate({ data: { code, language } });
@@ -32,8 +36,21 @@ function MainApp() {
     validateMutation.reset();
   };
 
+  const handleGenerate = () => {
+    if (!prompt.trim()) return;
+    generateMutation.mutate({ data: { prompt, language: genLanguage } });
+  };
+
+  const handleGenLanguageChange = (lang: Language) => {
+    setGenLanguage(lang);
+    generateMutation.reset();
+  };
+
   const isScanning = validateMutation.isPending;
   const result = validateMutation.data;
+
+  const isGenerating = generateMutation.isPending;
+  const genResult = generateMutation.data;
 
   const getExtension = (lang: Language) => {
     if (lang === "lua") return "lua";
@@ -83,7 +100,96 @@ function MainApp() {
       {/* Main Content */}
       <main className="w-full max-w-5xl flex flex-col gap-6 relative z-10 flex-grow">
         
-        {/* Input Section */}
+        {/* MODULE 1: Generate panel */}
+        <section className="terminal-panel flex flex-col">
+          <div className="bg-secondary/50 border-b border-border px-4 py-2 flex items-center justify-between">
+            <span className="text-sm font-bold text-primary flex items-center gap-2">
+              <ChevronRight className="w-4 h-4" /> MODULE 1 // GENERATE
+            </span>
+            <span className="text-xs text-muted-foreground uppercase">AI_BUILDER</span>
+          </div>
+          
+          <div className="p-4 flex flex-col">
+            <input
+              type="text"
+              placeholder="Describe what you want the script to do..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="w-full font-mono bg-transparent text-foreground outline-none border-b border-border pb-2 mb-3 placeholder:text-muted-foreground/50 text-sm"
+              disabled={isGenerating}
+            />
+            
+            <div className="flex gap-2 overflow-x-auto">
+              {(["lua","python","javascript","cpp"] as Language[]).map((lang) => (
+                <button
+                  key={`gen-${lang}`}
+                  onClick={() => handleGenLanguageChange(lang)}
+                  className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
+                    genLanguage === lang 
+                      ? "bg-primary text-primary-foreground border-primary" 
+                      : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+                  }`}
+                >
+                  {lang === "javascript" ? "JS" : lang === "cpp" ? "C++" : lang === "lua" ? "LUA" : "PYTHON"}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="border-t border-border p-4 bg-background/50 flex justify-end">
+            <button
+              onClick={handleGenerate}
+              disabled={!prompt.trim() || isGenerating}
+              className="group relative px-6 py-2 bg-[#8957e5]/10 border border-[#8957e5] text-[#8957e5] font-bold uppercase tracking-wider text-sm transition-all hover:bg-[#8957e5]/20 hover:shadow-[0_0_15px_rgba(137,87,229,0.4)] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+            >
+              {isGenerating ? (
+                <span className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 animate-pulse" />
+                  Generating...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  Generate Script <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+              )}
+              {isGenerating && <div className="absolute inset-0 scanline-sweep bg-[#8957e5]/20" />}
+            </button>
+          </div>
+        </section>
+
+        {genResult && !isGenerating && (
+          <div className="grid grid-cols-1 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <section className="terminal-panel border-[#8957e5]/30 bg-[#8957e5]/5 flex flex-col">
+              <div className="bg-[#8957e5]/10 border-b border-[#8957e5]/30 px-4 py-2 flex items-center justify-between">
+                <span className="text-sm font-bold flex items-center gap-2 text-[#8957e5]" style={{ textShadow: "0 0 10px rgba(137,87,229,0.5)" }}>
+                  <ShieldCheck className="w-4 h-4" /> GENERATED CODE
+                </span>
+                <span className="text-xs text-[#8957e5] uppercase">{genResult.language.toUpperCase()}.FILE</span>
+              </div>
+              <div className="relative p-4 flex-grow max-h-[400px] overflow-auto scrollbar-custom">
+                <HighlightedCode code={genResult.generatedCode} language={genResult.language as Language} />
+              </div>
+              <div className="border-t border-[#8957e5]/30 p-2 bg-[#8957e5]/10 flex justify-end">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(genResult.generatedCode);
+                  }}
+                  className="text-xs text-[#8957e5] hover:underline uppercase tracking-wider font-bold px-4 py-1"
+                >
+                  [ Copy to Clipboard ]
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        <div className="flex items-center gap-4 my-2">
+          <div className="flex-1 border-t border-border/50" />
+          <span className="text-xs text-muted-foreground uppercase tracking-widest">Module 2 // Validator</span>
+          <div className="flex-1 border-t border-border/50" />
+        </div>
+
+        {/* MODULE 2: Validator panel */}
         <section className="terminal-panel flex flex-col">
           <div className="bg-secondary/50 border-b border-border px-4 py-2 flex items-center justify-between">
             <span className="text-sm font-bold text-primary flex items-center gap-2">
@@ -93,46 +199,19 @@ function MainApp() {
           </div>
           
           <div className="flex px-4 pt-4 pb-2 gap-2 border-b border-border/50 overflow-x-auto">
-            <button
-              onClick={() => handleLanguageChange("lua")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
-                language === "lua" 
-                  ? "bg-primary text-primary-foreground border-primary" 
-                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
-              }`}
-            >
-              LUA
-            </button>
-            <button
-              onClick={() => handleLanguageChange("python")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
-                language === "python" 
-                  ? "bg-primary text-primary-foreground border-primary" 
-                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
-              }`}
-            >
-              PYTHON
-            </button>
-            <button
-              onClick={() => handleLanguageChange("javascript")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
-                language === "javascript" 
-                  ? "bg-primary text-primary-foreground border-primary" 
-                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
-              }`}
-            >
-              JS
-            </button>
-            <button
-              onClick={() => handleLanguageChange("cpp")}
-              className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
-                language === "cpp" 
-                  ? "bg-primary text-primary-foreground border-primary" 
-                  : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
-              }`}
-            >
-              C++
-            </button>
+            {(["lua","python","javascript","cpp"] as Language[]).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => handleLanguageChange(lang)}
+                className={`px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors border whitespace-nowrap ${
+                  language === lang 
+                    ? "bg-primary text-primary-foreground border-primary" 
+                    : "bg-transparent text-primary/70 border-primary/30 hover:border-primary/70 hover:text-primary"
+                }`}
+              >
+                {lang === "javascript" ? "JS" : lang === "cpp" ? "C++" : lang === "lua" ? "LUA" : "PYTHON"}
+              </button>
+            ))}
           </div>
 
           <div className="relative p-4 flex-grow">

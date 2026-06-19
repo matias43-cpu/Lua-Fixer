@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -18,20 +17,34 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * Checks code for structural errors and returns a fixed version
  * @summary Validate and auto-fix code
  */
 export const ValidateCodeBody = zod.object({
-  "code": zod.string().describe('The code to validate and fix'),
-  "language": zod.enum(['lua', 'python', 'javascript', 'cpp']).describe('The programming language of the code')
+  "code": zod.string(),
+  "language": zod.enum(['lua', 'python', 'javascript', 'cpp'])
 })
 
 export const ValidateCodeResponse = zod.object({
-  "valid": zod.boolean().describe('Whether the code is valid (no errors found)'),
-  "language": zod.enum(['lua', 'python', 'javascript', 'cpp']).describe('The language that was validated'),
-  "originalCode": zod.string().describe('The original submitted code'),
-  "fixedCode": zod.string().describe('The corrected version of the code'),
-  "errors": zod.array(zod.string()).describe('List of detected errors')
+  "valid": zod.boolean(),
+  "language": zod.enum(['lua', 'python', 'javascript', 'cpp']),
+  "originalCode": zod.string(),
+  "fixedCode": zod.string(),
+  "errors": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Generate code from a text prompt
+ */
+export const GenerateCodeBody = zod.object({
+  "prompt": zod.string().describe('Natural language description of what the code should do'),
+  "language": zod.enum(['lua', 'python', 'javascript', 'cpp'])
+})
+
+export const GenerateCodeResponse = zod.object({
+  "language": zod.enum(['lua', 'python', 'javascript', 'cpp']),
+  "prompt": zod.string(),
+  "generatedCode": zod.string()
 })
 
 

@@ -8,14 +8,9 @@
 import type { CodeValidationResultLanguage } from './codeValidationResultLanguage';
 
 export interface CodeValidationResult {
-  /** Whether the code is valid (no errors found) */
   valid: boolean;
-  /** The language that was validated */
   language: CodeValidationResultLanguage;
-  /** The original submitted code */
   originalCode: string;
-  /** The corrected version of the code */
   fixedCode: string;
-  /** List of detected errors */
   errors: string[];
 }
